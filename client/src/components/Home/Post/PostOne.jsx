@@ -1,7 +1,9 @@
 import { Avatar, AvatarGroup, Badge, Stack, Stepper, useMediaQuery } from "@mui/material";
+import { Link } from "react-router-dom";
 
+const PostOne = ({e}) => {
+    if (!e || !e.admin) return null; // Add null check for e and e.admin
 
-const PostOne = () => {
     const _700 = useMediaQuery("(min-width : 700px)");
     return (
         <>
@@ -10,6 +12,8 @@ const PostOne = () => {
             alignItems={'center'}
             justifyContent={'space-between'}
             >
+                <Link to={`/profile/threads/${e.admin._id}`}>
+
                 <Badge 
                 overlap="circular"
                 anchorOrigin={{vertical:"bottom", horizontal:"right"}}
@@ -21,7 +25,7 @@ const PostOne = () => {
                             width:_700 ? 20 : 14,
                             height: _700 ? 20 : 14,
                             bgcolor:"green",
-                            position:"relative",
+                            position:_700 ? "relative" : 'initial',
                             right:_700 ? 4 : 0,
                             bottom:_700 ? 4 : 0
                         }}
@@ -30,8 +34,9 @@ const PostOne = () => {
                 +{" "}</Avatar>
             }
             >
-                <Avatar alt="AG" src="" sx={{ width: _700 ? 40 : 32, height: _700 ? 40 : 32}}/>
+                <Avatar alt={e ? e.admin.userName : ''} src={e ? e.admin.profilePic : ''} sx={{ width: _700 ? 40 : 32, height: _700 ? 40 : 32}}/>
             </Badge>
+            </Link>
             <Stack
             flexDirection={'column'}
             alignItems={'center'}
@@ -43,19 +48,27 @@ const PostOne = () => {
                     width: '0px',
                     height: '100%',
                 }}></Stepper>
-                <AvatarGroup 
-                total={4}
-                // max={3}
-                sx={{
-                    "& .MuiAvatar-root" : {
-                        width: _700 ? 24 :16,
-                        heigth: _700 ? 24 :16,
-                        fontSize: _700 ? 12 :8,
-                    },
-                }}
-                >
-                    <Avatar src="" alr=""/>
-                </AvatarGroup>
+                {
+                    e ? e.comments.length > 0 ? <AvatarGroup 
+                    total={e?.comments.length}
+                    // max={3}
+                    sx={{
+                        "& .MuiAvatar-root" : {
+                            width: _700 ? 24 :16,
+                            heigth: _700 ? 24 :16,
+                            fontSize: _700 ? 12 :8,
+                        },
+                    }}
+                    >
+                        <Avatar src={e?.comments[0].admin.profilePic} alr={e?.comments[0].admin.userName}/>
+                        {
+                            e.comments.length > 1 ? (
+                                <Avatar src={e?.comments[1].admin.profilePic} alr={e?.comments[1].admin.userName}/>
+                            ) :
+                            null
+                        }
+                    </AvatarGroup> : '' : ''
+                }
             </Stack>
             </Stack>
         </>

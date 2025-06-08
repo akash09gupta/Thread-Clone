@@ -1,19 +1,74 @@
 import { Avatar, Button, Stack, Typography, Chip, useMediaQuery } from "@mui/material";
 import { FaInstagram } from "react-icons/fa";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useParams } from "react-router-dom";
 import { editProfileModal } from "../../../redux/slice";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useFollowUserMutation, useUserDetailsQuery } from "../../../redux/service";
+import EditProfile from "../../../components/modals/EditProfile";
+import { useEffect, useState } from "react";
 
 const ProfileLayout = () => {
+    const dispatch = useDispatch(); //func calling or in use selector is used to get the value
+    const params = useParams();
+    console.log("Params:", params);
+const {data} = useUserDetailsQuery(params?.id); 
+console.log(params.id); // Log the user ID for debugging
+
+console.log(data); // Log the user data for debugging
+
+    const [followUser, followUserData] = useFollowUserMutation();
+
+    const {darkMode, myInfo} = useSelector((state)=>state.service);
+
+    const [myAccount, setMyAccount] = useState();
+    const [isFollowing, setIsFollowing] = useState();
+
     const _300 = useMediaQuery("(min-width:300px");
     const _500 = useMediaQuery("(min-width:500px");
     const _700 = useMediaQuery("(min-width:700px");
-    
-    const dispatch = useDispatch(); //func calling or in use selector is used to get the value
+
+    const checkIsFollowing = () => {
+        if(data && myInfo) {
+            const isTrue = data.user.followers.filter((e)=> e._id === myInfo._id);
+            if(isTrue.length>0) {
+                setIsFollowing(true);
+                return;
+            }
+            setIsFollowing(false);
+        }
+    }
+
+    const checkIsMyAccounct = ()=>{
+        if(data && myInfo) {
+            const isTrue = data.user._id === myInfo._id;
+            setMyAccount(isTrue);
+        }
+    }
+
+    const handleFollow = async () => {
+        if (data) {
+          await followUser(data.user._id);
+        }
+    };
     
     const handleOpenEditModal = () => {
         dispatch(editProfileModal(true));
     }
+
+    useEffect(()=>{
+        if(followUserData.isSuccess) {
+            console.log(followUserData.data);
+        }
+        if(followUserData.isError) {
+            console.log(followUserData.error.data);
+        }
+    },[followUserData.isSuccess, followUserData.isError]);
+
+    useEffect(()=>{
+        checkIsFollowing();
+        checkIsMyAccounct();
+    },[data])
+
     return (
         <>
         <Stack 
@@ -31,11 +86,11 @@ const ProfileLayout = () => {
             >
                 <Stack flexDirection={'column'} gap={2}>
                     <Typography variant="h6" fontWeight={'bold'} fontSize={_300 ? '2rem' : '1rem'}>
-                        akash097_9
+                    {data ? (data.user ? data.user.userName : "") : ""}
                     </Typography>
                     <Stack flexDirection={'row'} alignItems={'center'} gap={1}>
                         <Typography variant="h2" fontSize={_300 ? '1rem' : '0.8rem'}>
-                            akash097_9
+                        {data ? (data.user ? data.user.email : "") : ""}
                         </Typography>
                         <Chip 
                         label="threads.net" 
@@ -44,22 +99,31 @@ const ProfileLayout = () => {
                         />
                     </Stack>
                 </Stack>
-                <Avatar src="" alt="" sx={{ width: _300 ? 60 : 40, height: _300 ? 60 : 40}}/>
+                <Avatar 
+                src={data ? (data.user ? data.user.profilePic : "") : ""}
+                alt={data ? (data.user ? data.user.userName : "") : ""}
+                sx={{ width: _300 ? 60 : 40, height: _300 ? 60 : 40}}/>
             </Stack>
-            <Typography variant="subtitle2">This is bio</Typography>
+            <Typography variant="subtitle2">{data ? (data.user ? data.user.bio : "") : ""}</Typography>
             <Stack 
             flexDirection={'row'}
             justifyContent={'space-between'}
             alignItems={'center'}
             >
                 <Typography variant="subtitle2" color={"gray"}>
-                    50k followers
+                {data
+              ? data.user
+                ? data.user.followers.length > 0
+                  ? `${data.user.followers.length} followers`
+                  : "No Followers"
+                : ""
+              : ""}
                 </Typography>
                 <FaInstagram size={_300 ? 40 : 24}/>
             </Stack>
         </Stack>
         <Button size="large" sx={{
-            color: "black",
+            color: darkMode ? "whitesmoke" : "black",
             width: _700 ? "800px" : "90%",
             mx: "auto",
             textAlign: "auto",
@@ -69,9 +133,9 @@ const ProfileLayout = () => {
                 cursor: "pointer",
             },
         }}
-        onClick={handleOpenEditModal}
+        onClick={myAccount ? handleOpenEditModal : handleFollow}
         >
-            Edit Profile
+            {myAccount ? " Edit Profile" : isFollowing ? "unfollow" : "Follow user"}
         </Button>
         <Stack
         flexDirection={'row'}
@@ -84,11 +148,12 @@ const ProfileLayout = () => {
         mx={'auto'}
 
         >
-            <Link to={'/profile/threads/1'} className="link">Threads</Link>
-            <Link to={'/profile/replies/1'} className="link">Replies</Link>
-            <Link to={'/profile/repost/1'} className="link">Repost</Link>
+            <Link to={`/profile/threads/${data?.user._id}`} className={`link ${darkMode ? "mode" : ""}`}>Threads</Link>
+            <Link to={`/profile/replies/${data?.user._id}`} className={`link ${darkMode ? "mode" : ""}`}>Replies</Link>
+            <Link to={`/profile/reposts/${data?.user._id}`} className={`link ${darkMode ? "mode" : ""}`}>Repost</Link>
         </Stack>
         <Outlet />
+        <EditProfile />
         </>
     )
 }

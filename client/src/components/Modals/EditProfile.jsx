@@ -1,14 +1,20 @@
 import { Avatar, Box, Button, Dialog, DialogContent, DialogTitle, Stack, Typography, useMediaQuery } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RxCross2 } from "react-icons/rx";
 import { useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { editProfileModal } from "../../redux/slice";
+import { useParams } from "react-router-dom";
+import {
+    useUpdateProfileMutation,
+    useUserDetailsQuery,
+  } from "../../redux/service";
+  import Loading from "../common/Loading";
 
 const EditProfile = () => {
     const _700 = useMediaQuery("(min-width: 700px)");
     
-    const { openEditProfileModal } = useSelector((state) => state.service);
+    const { openEditProfileModal, myInfo } = useSelector((state) => state.service);
 
     const dispatch = useDispatch();
 
@@ -19,13 +25,39 @@ const EditProfile = () => {
     const [pic, setPic] = useState();
     const [bio, setBio] = useState();
 
+    const params = useParams()
     const imgRef = useRef();
+
+    const [updateProfile, updateProfileData] = useUpdateProfileMutation();
+    const { refetch } = useUserDetailsQuery(params?.id);
 
     const handlePhoto = () => {
         imgRef.current.click();
     }
 
-    const handleUpdate = () => {}
+    const handleUpdate = async () => {
+        if (pic || bio) {
+          const data = new FormData();
+          if (bio) {
+            data.append("text", bio);
+          }
+          if (pic) {
+            data.append("media", pic);
+          }
+          await updateProfile(data);
+        }
+        dispatch(editProfileModal(false));
+      };
+
+      useEffect(()=>{
+        if(updateProfileData.isSuccess) {
+            refetch();
+            console.log(updateProfileData.data);
+        }
+        if(updateProfileData.isError) {
+            console.log(updateProfileData.error.data);
+        }
+      }, [updateProfileData.isSuccess, updateProfileData.isError])
     return (
         <>
             <Dialog 
@@ -34,6 +66,12 @@ const EditProfile = () => {
                 fullWidth
                 fullScreen={_700 ? false : true}
             >
+                {updateProfileData.isLoading ? (
+                   <Stack height={"60vh"}>
+                     <Loading />
+                   </Stack>
+                 ) : (
+                   <>
                 <Box
                     position={'absolute'}
                     top={20}
@@ -50,8 +88,16 @@ const EditProfile = () => {
                         flexDirection={'column'}
                         gap={1}
                     >
-                        <Avatar src={pic ? URL.createObjectURL(pic) : ""} 
-                        alt="" sx={{width:96,height:96,alignSelf:'center'}}/>
+                        <Avatar 
+                        src={
+                            pic
+                              ? URL.createObjectURL(pic)
+                              : myInfo
+                              ? myInfo.profilePic
+                              : ""
+                          }
+                        alt={myInfo ? myInfo.userName : ""}
+                        sx={{width:96,height:96,alignSelf:'center'}}/>
                         <Button
                             size="large"
                             sx={{
@@ -79,7 +125,7 @@ const EditProfile = () => {
                         >
                             Username
                         </Typography>
-                        <input type="text" value={"Akash Gupta"} readOnly className="text1"/>
+                        <input type="text" value={myInfo ? myInfo.userName : ""} readOnly className="text1"/>
                     </Stack>
                     <Stack
                         flexDirection={'column'}
@@ -93,7 +139,7 @@ const EditProfile = () => {
                         >
                             email
                         </Typography>
-                        <input type="text" value={"Akash Gupta"} readOnly className="text1"/>
+                        <input type="text" value={myInfo ? myInfo.email : ""} readOnly className="text1"/>
                     </Stack>
                     <Stack
                         flexDirection={'column'}
@@ -109,8 +155,9 @@ const EditProfile = () => {
                         </Typography>
                         <input 
                             type="text" 
-                            placeholder="" 
+                            placeholder={myInfo ? myInfo.bio : ""}
                             className="text1"
+                            value={bio ? bio : ""}
                             onChange={(e) => setBio(e.target.value)}
                         />
                     </Stack>
@@ -134,6 +181,8 @@ const EditProfile = () => {
                         Update
                     </Button>
                 </DialogContent>
+                </>
+            )}
             </Dialog>
         </>
     );

@@ -1,8 +1,9 @@
 import { Avatar, Button, Stack, Typography, useMediaQuery } from "@mui/material";
 import { addPostModal } from "../../redux/slice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 const Input = () => {
     const _700 = useMediaQuery("(min-width : 700px)");
+    const { myInfo } = useSelector((state) => state.service);
     const dispatch = useDispatch();
     const handleAddPost = () => {
         dispatch(addPostModal(true));
@@ -23,7 +24,10 @@ const Input = () => {
                 onClick={handleAddPost}
                 >
                     <Stack flexDirection={'row'} alignItems={'center'} gap={2}>
-                        <Avatar src="" alt="AJ" />
+                    <Avatar
+                      src={myInfo ? myInfo.profilePic : ""}
+                      alt={myInfo ? myInfo.userName : ""}
+                    />
                         <Typography color="GrayText">Start a thread...</Typography>
                     </Stack>
                     <Button size="medium" sx={{

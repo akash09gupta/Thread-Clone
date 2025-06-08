@@ -1,7 +1,9 @@
 import {Stack, useMediaQuery} from "@mui/material";
 import Comments from "../../../components/Home/Post/comments";
+import { useSelector } from "react-redux";
 
 const Replies = () => {
+    const { user } = useSelector((state) => state.service);
     const _700 = useMediaQuery("(min-width : 700px)")
     return (
         <>
@@ -11,7 +13,19 @@ const Replies = () => {
         width={_700 ? '800px' : '90%'}
         mx={'auto'}
         >
-            <Comments/>
+         {user ? (
+          user.user ? (
+            user.user.replies.length > 0 ? (
+              user.user.replies.map((e) => {
+                return <Comments key={e._id} e={e} postId={e.post} />;
+              })
+            ) : (
+              <Typography textAlign={"center"} variant="h6">
+                No Replies yet !
+              </Typography>
+            )
+          ) : null
+        ) : null}
         </Stack>
         </>
     )

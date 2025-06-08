@@ -7,7 +7,7 @@ import { useEffect } from "react";
 
 const MainMenu = () => {
     const dispatch = useDispatch();
-    const { anchorE1 } = useSelector(state => state.service);
+    const { anchorE1, myInfo } = useSelector(state => state.service);
 
     const [logoutMe, logoutMeData] = useLogoutMeMutation();
 
@@ -46,7 +46,7 @@ const MainMenu = () => {
                 transformOrigin={{ vertical: "bottom", horizontal: "right" }}
             >
                 <MenuItem onClick={handleToggleTheme}>Toggle Theme</MenuItem>
-                <Link to={'/profile/threads/2'} className="link">
+                <Link to={`/profile/threads/${myInfo?._id}`} className="link">
                     <MenuItem>My Profile</MenuItem>
                 </Link>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>

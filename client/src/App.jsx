@@ -3,29 +3,29 @@ import { useSelector } from "react-redux";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Error from "./pages/Error";
 import Home from "./pages/Protected/Home";
-import ProfileLayout from "./pages/Protected/profile/ProfileLayout";
 import Replies from "./pages/Protected/profile/Replies";
 import Repost from "./pages/Protected/profile/Repost";
-import Threads from "./pages/Protected/profile/Threads";
 import ProtectedLayout from "./pages/Protected/ProtectedLayout";
-import Search from "./pages/Protected/Search";
 import Register from "./pages/Register";
 import SinglePost from "./pages/Protected/SinglePost";
 import { useMyInfoQuery } from "./redux/service";
+import ProfileLayout from "./pages/protected/Profile/ProfileLayout";
+import Threads from "./pages/protected/Profile/Threads";
+import Search from "./pages/protected/Search";
 
 const App = () => {
   const { darkMode } = useSelector((state) => state.service);
   const { data, isError } = useMyInfoQuery();
 
-  // if (isError || !data) {
-  //   return (
-  //     <BrowserRouter>
-  //       <Routes>
-  //         <Route exact path="/*" element={<Register />} />
-  //       </Routes>
-  //     </BrowserRouter>
-  //   );
-  // }
+  if (isError || !data) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route exact path="/*" element={<Register />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
 
   return (
     <>

@@ -1,12 +1,15 @@
 import { Box, Avatar, Button, Dialog, DialogContent, DialogTitle, Stack, Typography, useMediaQuery } from "@mui/material";
 import { RxCross2 } from "react-icons/rx";
 import { FaImages } from "react-icons/fa";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addPostModal } from "../../redux/slice";
+import { useAddPostMutation } from "../../redux/service";
+import Loading from "../common/Loading";
 
 const AddPost = () => {
-    const { openAddPostModal } = useSelector(state=>state.service);
+    const { openAddPostModal, myInfo } = useSelector(state=>state.service);
+    const [addNewPost, addNewPostData] = useAddPostMutation();
 
     const _700 = useMediaQuery("(min-width : 700px");
     const _500 = useMediaQuery("(min-width : 500px");
@@ -23,7 +26,28 @@ const AddPost = () => {
     const handleMediaRef = () => {
         mediaRef.current.click();
     }
-    const handlePost = () => {}
+    const handlePost = async () => {
+        const data = new FormData();
+        if (text) {
+          data.append("text", text);
+        }
+        if (media) {
+          data.append("media", media);
+        }
+        await addNewPost(data);
+      };
+
+      useEffect(()=>{
+        if(addNewPostData.isSuccess){
+            setText();
+            setMedia();
+            dispatch(addPostModal(false));
+            console.log(addNewPostData.data);
+        }
+        if(addNewPostData.isError){
+            console.log(addNewPostData.error.data);
+        }
+      },[addNewPostData.isSuccess, addNewPostData.isError])
     return(
         <>
         <Dialog
@@ -32,65 +56,92 @@ const AddPost = () => {
         fullWidth
         fullScreen={_700 ? false : true}
         >
+            {addNewPostData?.isLoading ? (
+          <Stack height={"60vh"}>
+            <Loading />
+          </Stack>
+        ) : (
+          <>
             <Box
-            position={"absolute"}
-            top={20}
-            right={20}
-            onClick={handleClose}
+              position={"absolute"}
+              top={20}
+              right={20}
+              onClick={handleClose}
             >
-                <RxCross2 size={28} className="image-icon"/>
+              <RxCross2 size={28} className="image-icon" />
             </Box>
-            <DialogTitle textAlign={'center'} mb={5}>
-                New Thread...
+            <DialogTitle textAlign={"center"} mb={5}>
+              New Thread...
             </DialogTitle>
             <DialogContent>
+              <Stack flexDirection={"row"} gap={2} mb={5}>
+                <Avatar
+                  src={myInfo ? myInfo.profilePic : ""}
+                  alt={myInfo ? myInfo.userName : ""}
+                />
                 <Stack>
-                    <Stack flexDirection={'column'} gap={2} mb={5}>
-                        <Avatar src="" alt=""/>
-                    <Typography variant="h6" fontWeight={'bold'} fontSize={'1rem'}>
-                        akash097_9
-                    </Typography>
-                    <textarea 
-                    cols={_500 ? 40 : 25} 
-                    rows={2} 
+                  <Typography
+                    variant="h6"
+                    fontWeight={"bold"}
+                    fontSize={"1rem"}
+                  >
+                    {myInfo ? myInfo.userName : ""}
+                  </Typography>
+                  <textarea
+                    cols={_500 ? 40 : 25}
+                    rows={2}
                     className="text1"
                     placeholder="Start a Thread..."
                     autoFocus
                     onChange={(e) => setText(e.target.value)}
+                  />
+                  {media ? (
+                    <img
+                      src={URL.createObjectURL(media)}
+                      alt=""
+                      id="url-img"
+                      width={_500 ? 300 : _300 ? 200 : 100}
+                      height={_500 ? 300 : _300 ? 200 : 100}
                     />
-                    {
-                        media ? 
-                        <img src={URL.createObjectURL(media)} alt="" id="url-img" 
-                    width={_500 ? 300 : _300 ? 200 : 100}
-                    height={_500 ? 300 : _300 ? 200 : 100}
-                    /> : null
-                    }
-                    <FaImages size={28} className="image-icon" onClick={handleMediaRef}/>
-                    <input type="file" accept="image/*" className="file-input"
+                  ) : null}
+                  <FaImages
+                    size={28}
+                    className="image-icon"
+                    onClick={handleMediaRef}
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="file-input"
                     ref={mediaRef}
-                    onChange={(e)=>setMedia(e.target.files[0])}
-                    />
-                    </Stack>
+                    onChange={(e) => setMedia(e.target.files[0])}
+                  />
                 </Stack>
-                <Stack
-                flexDirection={'row'}
-                justifyContent={'space-between'}
-                alignItems={'center'}
+              </Stack>
+              <Stack
+                flexDirection={"row"}
+                justifyContent={"space-between"}
+                alignItems={"center"}
+              >
+                <Typography variant="h6" fontSize={"1rem"} color={"gray"}>
+                  Anyone can reply
+                </Typography>
+                <Button
+                  size="large"
+                  sx={{
+                    bgcolor: "GrayText",
+                    color: "white",
+                    borderRadius: "10px",
+                    ":hover": { bgcolor: "gray", cursor: "pointer" },
+                  }}
+                  onClick={handlePost}
                 >
-                    <Typography variant="h6" fontSize={'1rem'} color="gray">
-                        Anyone can reply
-                    </Typography>
-                    <Button size="large" sx={{
-                        bgcolor:"GrayText",
-                        color:"white", 
-                        borderRadius: '10px',
-                        ":hover":{bgcolor:'gray', cursor: "pointer"}}}
-                        onClick={handlePost}
-                        >
-                            Post
-                        </Button>
-                </Stack>
+                  Post
+                </Button>
+              </Stack>
             </DialogContent>
+          </>
+        )}
         </Dialog>
         </>
     );

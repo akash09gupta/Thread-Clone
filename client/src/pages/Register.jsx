@@ -30,7 +30,7 @@ const Register = () => {
             email,
             password,
         };
-        console.log("Login Data: ", data);
+        // console.log("Login Data: ", data);
         const result = await loginUser(data);
         if (result.error) {
             setErrorMessage(result.error.data.msg);
@@ -48,18 +48,17 @@ const Register = () => {
             setErrorMessage(result.error.data.msg);
         }
     };
-
     useEffect(() => {
         if (signinUserData.isSuccess) {
             console.log(signinUserData.data);
+            localStorage.setItem("userId", user._id);
         }
-    }, [signinUserData.isSuccess]);
-
-    useEffect(() => {
         if (loginUserData.isSuccess) {
             console.log(loginUserData.data);
+            console.log("Login success");
+            localStorage.setItem("userId", user._id);
         }
-    }, [loginUserData.isSuccess]);
+    }, [signinUserData.isSuccess, loginUserData.isSuccess]);
 
     if (signinUserData.isLoading || loginUserData.isLoading) {
         return (
