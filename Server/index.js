@@ -10,7 +10,7 @@ const app = express();//creating instance of express for using its methods
 connectDB();//calling database to connect
 
 app.use(cors({
-    origin:' http://localhost:5173',
+    origin:'https://thread-clone-ui.onrender.com',
     credentials:true
 }));
 app.use(express.json());
